@@ -1,10 +1,12 @@
-﻿using PietPad.Classes;
+﻿using Microsoft.Win32;
+using PietPad.Classes;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,6 +39,7 @@ namespace PietPad
         private static readonly Thickness selectedThickness = new Thickness(selectedStroke);
         private readonly Interpreter interpreter = new Interpreter(debug: true);
         private ColorBlock currentColorBlock;
+        private string currentFilePath;
         public MainWindow()
         {
             InitializeComponent();
@@ -425,6 +428,38 @@ namespace PietPad
         private void MenuItemContribute_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("https://github.com/Olfi01/PietPad");
+        }
+
+        private void CommandBindingSave_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(currentFilePath)) CommandBindingSaveAs_Executed(sender, e);
+            else SaveFile();
+        }
+
+        private void CommandBindingSaveAs_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var sfd = new SaveFileDialog()
+            {
+                Title = "Save file",
+                DefaultExt = "*.piet",
+                Filter = "PietPad Files (*.piet)|*.piet|All Files (*.*)|*.*",
+                ValidateNames = true
+            };
+            sfd.ShowDialog();
+            if (!string.IsNullOrEmpty(sfd.FileName))
+            {
+                currentFilePath = sfd.FileName;
+                SaveFile();
+            }
+        }
+
+        private void SaveFile()
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            using (var stream = File.OpenWrite(currentFilePath))
+            {
+                bf.Serialize(stream, image);
+            }
         }
     }
 }

@@ -13,6 +13,13 @@
             <Setter Property="Visibility" Value="Collapsed" />
         </Style>
     </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="Save" Executed="CommandBindingSave_Executed"/>
+        <CommandBinding Command="SaveAs" Executed="CommandBindingSaveAs_Executed"/>
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Command="SaveAs" Key="S" Modifiers="Ctrl+Shift"/>
+    </Window.InputBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <Menu.Background>
@@ -24,8 +31,9 @@
                 </LinearGradientBrush>
             </Menu.Background>
             <MenuItem Header="File">
-                <MenuItem Header="Open"/>
-                <MenuItem Header="Save"/>
+                <MenuItem Command="Open"/>
+                <MenuItem Command="Save"/>
+                <MenuItem Command="SaveAs" InputGestureText="Ctrl+Shift+S"/>
                 <Separator/>
                 <MenuItem Header="Import"/>
                 <MenuItem Header="Export"/>
