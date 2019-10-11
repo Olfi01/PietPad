@@ -3,40 +3,186 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:local="clr-namespace:PietPad"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0">
-            <Grid x:Name="pietGrid" Width="200" Height="200" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-            </Grid>
-        </Border>
-
-    </Grid>
+        Title="PietPad" Height="650" Width="1200"
+        KeyDown="Window_KeyDown">
+    <Window.Resources>
+        <Style x:Key="invisibleHeader" TargetType="{x:Type GridViewColumnHeader}">
+            <Setter Property="Visibility" Value="Collapsed" />
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <Menu.Background>
+                <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+                    <GradientStop Color="#FFF6F6F6" Offset="0.25"/>
+                    <GradientStop Color="#FFEAE8E8" Offset="0.25"/>
+                    <GradientStop Color="#FFDCD9D9" Offset="0.963"/>
+                    <GradientStop Color="White" Offset="1"/>
+                </LinearGradientBrush>
+            </Menu.Background>
+            <MenuItem Header="File">
+                <MenuItem Header="Open"/>
+                <MenuItem Header="Save"/>
+                <Separator/>
+                <MenuItem Header="Import"/>
+                <MenuItem Header="Export"/>
+            </MenuItem>
+            <MenuItem Header="About">
+                <MenuItem Header="Contribute" Click="MenuItemContribute_Click"/>
+            </MenuItem>
+        </Menu>
+        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="0.6*"/>
+            </Grid.ColumnDefinitions>
+            <ScrollViewer HorizontalAlignment="Stretch" Margin="0,0,0,0" VerticalAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="3" Grid.RowSpan="3" Focusable="False">
+                <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10">
+                    <Grid x:Name="pietGrid" Width="400" Height="400" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" Focusable="True">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </Border>
+            </ScrollViewer>
+            <Border BorderBrush="Gray" BorderThickness="1" HorizontalAlignment="Stretch" Height="60" Margin="10" VerticalAlignment="Center" Grid.Row="3">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <xctk:IntegerUpDown Name="rowCounter" VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Value="20" Margin="10" ValueChanged="IntegerUpDown_ValueChanged" Minimum="1" Maximum="50" Grid.Column="0" KeyDown="Counter_KeyDown"/>
+                    <Label Content="x" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="1"/>
+                    <xctk:IntegerUpDown Name="colCounter" VerticalAlignment="Center" HorizontalAlignment="Center" Width="50" Value="20" Margin="10" ValueChanged="IntegerUpDown_ValueChanged" Minimum="1" Maximum="50" Grid.Column="2" KeyDown="Counter_KeyDown"/>
+                </Grid>
+            </Border>
+            <Button x:Name="clearButton" Content="Clear Image" HorizontalAlignment="Center" Margin="10" VerticalAlignment="Center" Padding="5" Grid.Column="1" Grid.Row="3" Click="ClearButton_Click"/>
+            <Border BorderBrush="Gray" BorderThickness="1" Height="130" Margin="10" VerticalAlignment="Bottom" Grid.Column="2" Grid.Row="3" HorizontalAlignment="Stretch">
+                <Grid x:Name="brushButtonsGrid" Focusable="True">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </Border>
+            <ScrollViewer Grid.Column="3" HorizontalAlignment="Stretch" Margin="10" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" Focusable="False">
+                <TextBox x:Name="outputTextBox" TextWrapping="NoWrap" IsReadOnly="True" Focusable="False"/>
+            </ScrollViewer>
+            <ScrollViewer Grid.Column="3" HorizontalAlignment="Stretch" Margin="10" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Auto" Grid.Row="1">
+                <TextBox x:Name="inputTextBox" TextWrapping="NoWrap" Focusable="True" IsReadOnly="False">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                            <Style.Resources>
+                                <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Top" Stretch="None">
+                                    <VisualBrush.Visual>
+                                        <Label Content="Input (enter before starting)" Foreground="LightGray" />
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </Style.Resources>
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                                    <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                </Trigger>
+                                <Trigger Property="Text" Value="{x:Null}">
+                                    <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter Property="Background" Value="White" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+            </ScrollViewer>
+            <ListView x:Name="stackDebugListView" Grid.Column="3" HorizontalAlignment="Stretch" Margin="10" VerticalAlignment="Stretch" Grid.Row="2" Focusable="False">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Focusable" Value="False"/>
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type ListViewItem}">
+                                    <ContentPresenter />
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.View>
+                    <GridView ColumnHeaderContainerStyle="{StaticResource invisibleHeader}">
+                        <GridViewColumn/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <DockPanel Grid.Column="3" Margin="10" Grid.Row="3" VerticalAlignment="Stretch" HorizontalAlignment="Center">
+                <Button x:Name="interpretationButton" Content="Interpret" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5" Click="InterpretButton_Click" Margin="5"/>
+                <Button x:Name="pauseButton" Content="Pause" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5" Click="PauseButton_Click" IsEnabled="False" Margin="5"/>
+                <Button x:Name="stepButton" Content="One Step" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5" Click="StepButton_Click" Margin="5"/>
+                <Button x:Name="cancelButton" Content="Cancel" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5" Click="CancelButton_Click" IsEnabled="False" Margin="5"/>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
 </Window>

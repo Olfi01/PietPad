@@ -3,258 +3,384 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PietPad.Classes
 {
     public class Interpreter
     {
-        public Stack<int> Stack { get; } = new Stack<int>();
+        public ObservableStack<int> Stack { get; } = new ObservableStack<int>();
         public DirectionPointer DP { get; private set; }
         public CodelChooser CC { get; private set; }
+        public bool IsDebug { get; }
+        public int StepDelay { get; }
+        /// <summary>
+        /// The encoding that is assumed for the input and output stream
+        /// </summary>
+        public static readonly Encoding Encoding = Encoding.Unicode;
+
+        /// <summary>
+        /// Will be fired on each new operation if debug is active
+        /// </summary>
+        public event EventHandler<Operation> OperationSelected;
+        /// <summary>
+        /// Will be fired when an operation can't be executed if debug is active
+        /// </summary>
+        public event EventHandler<Operation> OperationFailed;
+        /// <summary>
+        /// Will be fired when the direction of the DP changes if debug is active
+        /// </summary>
+        public event EventHandler<DirectionPointer> DpChanged;
+        /// <summary>
+        /// Will be fired when the direction of the CC changes if debug is active
+        /// </summary>
+        public event EventHandler<CodelChooser> CcChanged;
+        /// <summary>
+        /// Will be fired when current color block changes during interpretation, if debug is active
+        /// </summary>
+        public event EventHandler<ColorBlock> EnterColorBlock;
+        /// <summary>
+        /// Current state of interpretation in debug mode
+        /// </summary>
+        public ExecutionState State { get; private set; }
+
+        /// <summary>
+        /// Initializes a new interpreter for a Piet program
+        /// </summary>
+        /// <param name="debug">Whether the interpreter should work in debug mode</param>
+        /// <param name="stepDelay">The delay between operations. Will be ignored if <paramref name="debug"/> is false.</param>
+        public Interpreter(bool debug = false, int stepDelay = 1000)
+        {
+            IsDebug = debug;
+            StepDelay = stepDelay;
+        }
+
+        /// <summary>
+        /// Pauses the interpretation (only available in debug mode). Will be ignored if no interpretation is in progress or the interpretation is already paused.
+        /// </summary>
+        public void PauseInterpretation()
+        {
+            if (!IsDebug) throw new InvalidOperationException("Interpreter is not debuggable!");
+            if (State != ExecutionState.Running) return;
+            State = ExecutionState.Paused;
+        }
+
+        /// <summary>
+        /// Resumes the interpretation (only available in debug mode). Will be ignored if no interpretation is in progress or it wasn't paused to begin with.
+        /// </summary>
+        public void ResumeInterpretation()
+        {
+            if (!IsDebug) throw new InvalidOperationException("Interpreter is not debuggable!");
+            if (State != ExecutionState.Paused) return;
+            State = ExecutionState.Running;
+        }
+        
+        /// <summary>
+        /// Lets the current interpretation proceed by one step (only available in debug mode). Will be ignoed if no interpretation is in progress or it was not paused before.
+        /// </summary>
+        public void Step()
+        {
+            if (!IsDebug) throw new InvalidOperationException("Interpreter is not debuggable!");
+            if (State != ExecutionState.Paused) return;
+            State = ExecutionState.OneMoreStep;
+        }
+
+        /// <summary>
+        /// Cancels the current interpretation (only available in debug mode).
+        /// </summary>
+        public void CancelInterpretation()
+        {
+            if (!IsDebug) throw new InvalidOperationException("Interpreter is not debuggable!");
+            State = ExecutionState.Idle;
+        }
 
         public void Interpret(Codel[,] image, Stream stdout, Stream stdin)
         {
-            DP = DirectionPointer.Right;
-            CC = CodelChooser.Left;
-            List<ColorBlock> colorBlocks = new List<ColorBlock>();
-            for (int x = 0; x < image.GetLength(0); x++)
+            if (State != ExecutionState.Idle) throw new InvalidOperationException("Can't start two interpretations at once!");
+            State = ExecutionState.Running;
+            using (StreamWriter stdoutWriter = new StreamWriter(stdout, Encoding))
             {
-                for (int y = 0; y < image.GetLength(1); y++)
+                stdoutWriter.AutoFlush = true;
+                using (StreamReader stdinReader = new StreamReader(stdin, Encoding))
                 {
-                    if (image[x, y].Position.x != x || image[x, y].Position.y != y) throw new ArgumentException("Position noted in Codel class not equal to position noted in grid!");
-                    bool hasAdjacentCodel(ColorBlock b)
+                    DP = DirectionPointer.Right;
+                    if (IsDebug) DpChanged?.Invoke(this, DP);
+                    CC = CodelChooser.Left;
+                    if (IsDebug) CcChanged?.Invoke(this, CC);
+                    Stack.Clear();
+                    List<ColorBlock> colorBlocks = new List<ColorBlock>();
+                    for (int x = 0; x < image.GetLength(0); x++)
                     {
-                        return b.Codels.Any(c => (Math.Abs(c.Position.x - x) == 1 ^ Math.Abs(c.Position.y - y) == 1) && c.Color == image[x, y].Color);
-                    }
-                    if (!colorBlocks.Any(hasAdjacentCodel))
-                    {
-                        var colorBlock = new ColorBlock();
-                        colorBlock.Codels.Add(image[x, y]);
-                        colorBlocks.Add(colorBlock);
-                    }
-                    else
-                    {
-                        colorBlocks.Find(hasAdjacentCodel).Codels.Add(image[x, y]);
-                    }
-                }
-            }
+                        for (int y = 0; y < image.GetLength(1); y++)
+                        {
+                            if (image[x, y].Position.x != x || image[x, y].Position.y != y) throw new ArgumentException("Position noted in Codel class not equal to position noted in grid!");
 
-            Codel currentCodel;
-            (int x, int y) currentPosition = (0, 0);
-            ColorBlock currentColorBlock;
-            Codel nextCodel;
-            List<(int x, int y)> whiteTrace = new List<(int x, int y)>();
-            while (true)
-            {
-                currentCodel = image[currentPosition.x, currentPosition.y];
-                nextCodel = null;
-                if (currentCodel.Color == CodelColor.White)
-                {
-                    whiteTrace.Add(currentPosition);
-                    for (int i = 0; i < 4; i++)
-                    {
-                        int xFactor = 0, yFactor = 0;
-                        switch (DP)
-                        {
-                            case DirectionPointer.Right:
-                                xFactor = 1;
-                                break;
-                            case DirectionPointer.Down:
-                                yFactor = 1;
-                                break;
-                            case DirectionPointer.Left:
-                                xFactor = -1;
-                                break;
-                            case DirectionPointer.Up:
-                                yFactor = -1;
-                                break;
+                            bool nextTo(Codel c, int xPos, int yPos)
+                            {
+                                return (Math.Abs(c.Position.x - xPos) == 1 && c.Position.y == yPos) || (Math.Abs(c.Position.y - yPos) == 1 && c.Position.x == xPos);
+                            }
+                            bool hasAdjacentCodel(ColorBlock b)
+                            {
+                                return b.Codels.Any(c => nextTo(c, x, y) && c.Color == image[x, y].Color);
+                            }
+                            if (!colorBlocks.Any(hasAdjacentCodel))
+                            {
+                                var colorBlock = new ColorBlock(image[x, y]);
+                                colorBlocks.Add(colorBlock);
+                            }
+                            else
+                            {
+                                if (colorBlocks.Count(hasAdjacentCodel) > 1)
+                                {
+                                    var block = new ColorBlock(image[x, y]);
+                                    colorBlocks.ForEach(b => { if (hasAdjacentCodel(b)) b.Codels.ForEach(c => block.Codels.Add(c)); });
+                                    colorBlocks.RemoveAll(hasAdjacentCodel);
+                                    colorBlocks.Add(block);
+                                }
+                                else colorBlocks.Find(hasAdjacentCodel).Codels.Add(image[x, y]);
+                            }
                         }
-                        int xPos = currentPosition.x + xFactor;
-                        int yPos = currentPosition.y + yFactor;
-                        if (xPos < 0 || xPos >= image.GetLength(0) || yPos < 0 || yPos >= image.GetLength(1) || image[xPos, yPos].Color == CodelColor.Black)
+                    }
+
+                    Codel currentCodel;
+                    (int x, int y) currentPosition = (0, 0);
+                    ColorBlock currentColorBlock, previousColorBlock;
+                    Codel nextCodel;
+                    List<(int x, int y)> whiteTrace = new List<(int x, int y)>();
+                    if (IsDebug) EnterColorBlock?.Invoke(this, colorBlocks.Find(x => x.Codels.Contains(image[0, 0])));
+                    while (true)
+                    {
+                        currentCodel = image[currentPosition.x, currentPosition.y];
+                        nextCodel = null;
+                        if (currentCodel.Color == CodelColor.White)
                         {
-                            ToggleCodelChooser();
-                            TurnDirectionPointer();
+                            whiteTrace.Add(currentPosition);
+                            for (int i = 0; i < 4; i++)
+                            {
+                                int xFactor = 0, yFactor = 0;
+                                switch (DP)
+                                {
+                                    case DirectionPointer.Right:
+                                        xFactor = 1;
+                                        break;
+                                    case DirectionPointer.Down:
+                                        yFactor = 1;
+                                        break;
+                                    case DirectionPointer.Left:
+                                        xFactor = -1;
+                                        break;
+                                    case DirectionPointer.Up:
+                                        yFactor = -1;
+                                        break;
+                                }
+                                int xPos = currentPosition.x + xFactor;
+                                int yPos = currentPosition.y + yFactor;
+                                if (xPos < 0 || xPos >= image.GetLength(0) || yPos < 0 || yPos >= image.GetLength(1) || image[xPos, yPos].Color == CodelColor.Black)
+                                {
+                                    ToggleCodelChooser();
+                                    TurnDirectionPointer();
+                                    continue;
+                                }
+                                currentPosition = (xPos, yPos);
+                                break;
+                            }
+                            if (whiteTrace.Any(x => x.x == currentPosition.x && x.y == currentPosition.y))
+                            {
+                                State = ExecutionState.Idle;
+                                return;
+                            }
                             continue;
                         }
-                        currentPosition = (xPos, yPos);
-                        break;
-                    }
-                    if (whiteTrace.Any(x => x.x == currentPosition.x && x.y == currentPosition.y)) return;
-                    continue;
-                }
-                whiteTrace.Clear();
-                currentColorBlock = colorBlocks.Find(x => x.Codels.Contains(currentCodel));
+                        whiteTrace.Clear();
+                        if (IsDebug) Thread.Sleep(StepDelay);
+                        while (IsDebug && State == ExecutionState.Paused) { }
+                        if (State == ExecutionState.OneMoreStep) State = ExecutionState.Paused;
+                        else if (State == ExecutionState.Idle) return;
+                        currentColorBlock = colorBlocks.Find(x => x.Codels.Contains(currentCodel));
 
-                Codel furthestCodel = null;
-                for (int i = 0; i < 8; i++)
-                {
-                    int xFactor = 0, yFactor = 0;
-                    switch (DP)
-                    {
-                        case DirectionPointer.Right:
-                            xFactor = 1;
-                            break;
-                        case DirectionPointer.Down:
-                            yFactor = 1;
-                            break;
-                        case DirectionPointer.Left:
-                            xFactor = -1;
-                            break;
-                        case DirectionPointer.Up:
-                            yFactor = -1;
-                            break;
-                    }
-
-                    furthestCodel = currentColorBlock.FindFurthestCodel(DP, CC);
-                    int xPos = furthestCodel.Position.x + xFactor;
-                    int yPos = furthestCodel.Position.y + yFactor;
-                    if (xPos < 0 || xPos >= image.GetLength(0) || yPos < 0 || yPos >= image.GetLength(1) || image[xPos, yPos].Color == CodelColor.Black)
-                    {
-                        if (i % 2 == 0) ToggleCodelChooser();
-                        else TurnDirectionPointer();
-                        continue;
-                    }
-                    nextCodel = image[xPos, yPos];
-                    currentPosition = (xPos, yPos);
-                    break;
-                }
-
-                if (nextCodel == null) return;
-                var operation = CodelColor.CalculateOperation(furthestCodel.Color, nextCodel.Color);
-
-                int top, sectop;
-                switch (operation)
-                {
-                    case Operation.nop:
-                        break;
-                    case Operation.add:
-                        top = Stack.Pop();
-                        sectop = Stack.Pop();
-                        Stack.Push(sectop + top);
-                        break;
-                    case Operation.divide:
-                        if (Stack.Peek() == 0) break;
-                        top = Stack.Pop();
-                        sectop = Stack.Pop();
-                        Stack.Push(sectop / top);
-                        break;
-                    case Operation.greater:
-                        top = Stack.Pop();
-                        sectop = Stack.Pop();
-                        if (sectop > top) Stack.Push(1);
-                        else Stack.Push(0);
-                        break;
-                    case Operation.duplicate:
-                        Stack.Push(Stack.Peek());
-                        break;
-                    case Operation.in_char:
-                        Stack.Push(stdin.ReadByte());
-                        break;
-                    case Operation.push:
-                        Stack.Push(currentColorBlock.Size);
-                        break;
-                    case Operation.subtract:
-                        top = Stack.Pop();
-                        sectop = Stack.Pop();
-                        Stack.Push(sectop - top);
-                        break;
-                    case Operation.mod:
-                        if (Stack.Peek() == 0) break;
-                        top = Stack.Pop();
-                        sectop = Stack.Pop();
-                        if (top > 0) Stack.Push(sectop % top);
-                        else Stack.Push((sectop % Math.Abs(top)) - Math.Abs(top));
-                        break;
-                    case Operation.pointer:
-                        TurnDirectionPointer(Stack.Pop());
-                        break;
-                    case Operation.roll:
-                        top = Stack.Pop();
-                        sectop = Stack.Pop();
-                        if (sectop < 0 || sectop > Stack.Count)
+                        Codel furthestCodel = null;
+                        for (int i = 0; i < 8; i++)
                         {
-                            Stack.Push(sectop);
-                            Stack.Push(top);
+                            int xFactor = 0, yFactor = 0;
+                            switch (DP)
+                            {
+                                case DirectionPointer.Right:
+                                    xFactor = 1;
+                                    break;
+                                case DirectionPointer.Down:
+                                    yFactor = 1;
+                                    break;
+                                case DirectionPointer.Left:
+                                    xFactor = -1;
+                                    break;
+                                case DirectionPointer.Up:
+                                    yFactor = -1;
+                                    break;
+                            }
+
+                            furthestCodel = currentColorBlock.FindFurthestCodel(DP, CC);
+                            int xPos = furthestCodel.Position.x + xFactor;
+                            int yPos = furthestCodel.Position.y + yFactor;
+                            if (xPos < 0 || xPos >= image.GetLength(0) || yPos < 0 || yPos >= image.GetLength(1) || image[xPos, yPos].Color == CodelColor.Black)
+                            {
+                                if (i % 2 == 0) ToggleCodelChooser();
+                                else TurnDirectionPointer();
+                                continue;
+                            }
+                            nextCodel = image[xPos, yPos];
+                            currentPosition = (xPos, yPos);
                             break;
                         }
-                        Roll(sectop, top);
-                        break;
-                    case Operation.out_number:
-                        OutputNumber(stdout, Stack.Pop());
-                        break;
-                    case Operation.pop:
-                        Stack.Pop();
-                        break;
-                    case Operation.multiply:
-                        top = Stack.Pop();
-                        sectop = Stack.Pop();
-                        Stack.Push(sectop * top);
-                        break;
-                    case Operation.not:
-                        top = Stack.Pop();
-                        if (top == 0) Stack.Push(1);
-                        else Stack.Push(0);
-                        break;
-                    case Operation.@switch:
-                        ToggleCodelChooser(Stack.Pop());
-                        break;
-                    case Operation.in_number:
-                        ReadNumber(stdin);
-                        break;
-                    case Operation.out_char:
-                        stdout.WriteByte(Convert.ToByte(Stack.Pop()));
-                        break;
+
+                        if (nextCodel == null)
+                        {
+                            State = ExecutionState.Idle;
+                            return;
+                        }
+                        previousColorBlock = currentColorBlock;
+                        currentColorBlock = colorBlocks.Find(x => x.Codels.Contains(nextCodel));
+                        if (IsDebug && nextCodel.Color != CodelColor.White) EnterColorBlock?.Invoke(this, currentColorBlock);
+                        var operation = CodelColor.CalculateOperation(furthestCodel.Color, nextCodel.Color);
+                        if (IsDebug) OperationSelected?.Invoke(this, operation);
+
+                        // check if operation is impossible and needs to be skipped
+                        bool skip;
+                        switch (operation)
+                        {
+                            case Operation.add:
+                            case Operation.greater:
+                            case Operation.subtract:
+                            case Operation.multiply:
+                            case Operation.roll:
+                                skip = Stack.Count < 2;
+                                break;
+                            case Operation.divide:
+                            case Operation.mod:
+                                skip = Stack.Count < 2 || Stack.Peek() == 0;
+                                break;
+                            case Operation.duplicate:
+                            case Operation.pointer:
+                            case Operation.out_number:
+                            case Operation.pop:
+                            case Operation.not:
+                            case Operation.@switch:
+                            case Operation.out_char:
+                                skip = Stack.Count < 1;
+                                break;
+                            default:
+                                skip = false;
+                                break;
+                        }
+
+                        // execute operation
+                        if (!skip)
+                        {
+                            int top, sectop, b;
+                            switch (operation)
+                            {
+                                case Operation.nop:
+                                    break;
+                                case Operation.add:
+                                    top = Stack.Pop();
+                                    sectop = Stack.Pop();
+                                    Stack.Push(sectop + top);
+                                    break;
+                                case Operation.divide:
+                                    top = Stack.Pop();
+                                    sectop = Stack.Pop();
+                                    Stack.Push(sectop / top);
+                                    break;
+                                case Operation.greater:
+                                    top = Stack.Pop();
+                                    sectop = Stack.Pop();
+                                    if (sectop > top) Stack.Push(1);
+                                    else Stack.Push(0);
+                                    break;
+                                case Operation.duplicate:
+                                    Stack.Push(Stack.Peek());
+                                    break;
+                                case Operation.in_char:
+                                    b = stdinReader.Read();
+                                    if (b != -1) Stack.Push(b);
+                                    else OperationFailed?.Invoke(this, operation);
+                                    break;
+                                case Operation.push:
+                                    Stack.Push(previousColorBlock.Size);
+                                    break;
+                                case Operation.subtract:
+                                    top = Stack.Pop();
+                                    sectop = Stack.Pop();
+                                    Stack.Push(sectop - top);
+                                    break;
+                                case Operation.mod:
+                                    top = Stack.Pop();
+                                    sectop = Stack.Pop();
+                                    if (top > 0) Stack.Push(sectop % top);
+                                    else Stack.Push((sectop % Math.Abs(top)) - Math.Abs(top));
+                                    break;
+                                case Operation.pointer:
+                                    TurnDirectionPointer(Stack.Pop());
+                                    break;
+                                case Operation.roll:
+                                    top = Stack.Pop();
+                                    sectop = Stack.Pop();
+                                    if (sectop < 0 || sectop > Stack.Count)
+                                    {
+                                        Stack.Push(sectop);
+                                        Stack.Push(top);
+                                        if (IsDebug) OperationFailed?.Invoke(this, operation);
+                                        break;
+                                    }
+                                    Roll(sectop, top);
+                                    break;
+                                case Operation.out_number:
+                                    OutputNumber(stdoutWriter, Stack.Pop());
+                                    break;
+                                case Operation.pop:
+                                    Stack.Pop();
+                                    break;
+                                case Operation.multiply:
+                                    top = Stack.Pop();
+                                    sectop = Stack.Pop();
+                                    Stack.Push(sectop * top);
+                                    break;
+                                case Operation.not:
+                                    top = Stack.Pop();
+                                    if (top == 0) Stack.Push(1);
+                                    else Stack.Push(0);
+                                    break;
+                                case Operation.@switch:
+                                    ToggleCodelChooser(Stack.Pop());
+                                    break;
+                                case Operation.in_number:
+                                    ReadNumber(stdinReader);
+                                    break;
+                                case Operation.out_char:
+                                    stdoutWriter.Write((char)Stack.Pop());
+                                    break;
+                            }
+                        }
+                        else if (IsDebug) OperationFailed?.Invoke(this, operation);
+                    }
                 }
             }
         }
 
-        private void ReadNumber(Stream stream)
+        private void ReadNumber(StreamReader streamReader)
         {
-            int totalNumber = 0;
-            do
+            string number = "";
+            if (streamReader.Peek() == '-') number += (char)streamReader.Read();
+            while (char.IsDigit((char)streamReader.Peek()))
             {
-                int number = stream.ReadByte();
-                if (number > 57 || number < 48)
-                {
-                    stream.Seek(-1, SeekOrigin.Current);
-                    break;
-                }
-                else totalNumber = totalNumber * 10 + (number - 48);
-            } while (true);
-            Stack.Push(totalNumber);
+                number += (char)streamReader.Read();
+            }
+            Stack.Push(int.Parse(number));
         }
 
-        private byte DigitToAscii(int digit)
+        private void OutputNumber(StreamWriter streamWriter, int number)
         {
-            if (digit > 9 || digit < 0) throw new ArgumentException("Not a digit!");
-            return Convert.ToByte(48 + digit);
-        }
-
-        private void OutputNumber(Stream stream, int number)
-        {
-            bool minus = number < 0;
-            Stack<int> digits = new Stack<int>();
-            Digitize(Math.Abs(number), digits);
-            if (minus) stream.WriteByte(Convert.ToByte('-'));
-            while (digits.Count > 0)
-            {
-                stream.WriteByte(DigitToAscii(digits.Pop()));
-            }
-        }
-
-        private void Digitize(int number, Stack<int> digits)
-        {
-            if (number < 10)
-            {
-                digits.Push(number);
-            }
-            else
-            {
-                digits.Push(number % 10);
-                Digitize(number / 10, digits);
-            }
+            streamWriter.Write(number.ToString());
         }
 
         private void Roll(int depth, int times)
@@ -301,6 +427,7 @@ namespace PietPad.Classes
                     CC = CodelChooser.Left;
                     return;
             }
+            if (IsDebug) CcChanged?.Invoke(this, CC);
         }
 
         private void ToggleCodelChooser(int times)
@@ -329,6 +456,7 @@ namespace PietPad.Classes
                     DP = DirectionPointer.Right;
                     return;
             }
+            if (IsDebug) DpChanged?.Invoke(this, DP);
         }
 
         private void TurnDirectionPointerCounterclockwise()
@@ -348,6 +476,7 @@ namespace PietPad.Classes
                     DP = DirectionPointer.Left;
                     return;
             }
+            if (IsDebug) DpChanged?.Invoke(this, DP);
         }
 
         private void TurnDirectionPointer(int times)
@@ -381,6 +510,14 @@ namespace PietPad.Classes
         {
             Left,
             Right
+        }
+
+        public enum ExecutionState
+        {
+            Idle,
+            Running,
+            Paused,
+            OneMoreStep
         }
     }
 }

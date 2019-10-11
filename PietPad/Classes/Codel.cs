@@ -8,7 +8,8 @@ namespace PietPad.Classes
 {
     public class Codel
     {
-        public CodelColor Color { get; set; } = CodelColor.White;
+        public static readonly CodelColor DefaultColor = CodelColor.White;
+        public CodelColor Color { get; set; } = DefaultColor;
         public (int x, int y) Position { get; set; }
 
         public Codel(int x, int y)

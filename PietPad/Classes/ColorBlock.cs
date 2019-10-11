@@ -12,6 +12,16 @@ namespace PietPad.Classes
         public List<Codel> Codels { get; } = new List<Codel>();
         public int Size => Codels.Count;
 
+        public ColorBlock()
+        {
+
+        }
+
+        public ColorBlock(Codel initialCodel)
+        {
+            Codels.Add(initialCodel);
+        }
+
         public Codel FindFurthestCodel(DirectionPointer dp, CodelChooser cc)
         {
             int xFactor = 0, yFactor = 0;

@@ -52,7 +52,7 @@ namespace PietPad.Classes
         };
         public static Operation CalculateOperation(CodelColor from, CodelColor to)
         {
-            if (from == White || to == White) return Operation.nop;
+            if (from == White || to == White || from == Black || to == Black) return Operation.nop;
             int hueChange = to.Hue.Value - from.Hue.Value;
             if (hueChange < 0) hueChange += 6;
             else if (hueChange > 5) hueChange -= 6;
@@ -60,6 +60,80 @@ namespace PietPad.Classes
             if (lightnessChange < 0) lightnessChange += 3;
             else if (lightnessChange > 2) lightnessChange -= 3;
             return ops[hueChange, lightnessChange];
+        }
+
+        public static CodelColor GetColor(ColorHue hue, ColorLightness lightness)
+        {
+            switch (hue)
+            {
+                case ColorHue.Red:
+                    switch (lightness)
+                    {
+                        case ColorLightness.Light:
+                            return LightRed;
+                        case ColorLightness.Normal:
+                            return Red;
+                        case ColorLightness.Dark:
+                            return DarkRed;
+                    }
+                    break;
+                case ColorHue.Yellow:
+                    switch (lightness)
+                    {
+                        case ColorLightness.Light:
+                            return LightYellow;
+                        case ColorLightness.Normal:
+                            return Yellow;
+                        case ColorLightness.Dark:
+                            return DarkYellow;
+                    }
+                    break;
+                case ColorHue.Green:
+                    switch (lightness)
+                    {
+                        case ColorLightness.Light:
+                            return LightGreen;
+                        case ColorLightness.Normal:
+                            return Green;
+                        case ColorLightness.Dark:
+                            return DarkGreen;
+                    }
+                    break;
+                case ColorHue.Cyan:
+                    switch (lightness)
+                    {
+                        case ColorLightness.Light:
+                            return LightCyan;
+                        case ColorLightness.Normal:
+                            return Cyan;
+                        case ColorLightness.Dark:
+                            return DarkCyan;
+                    }
+                    break;
+                case ColorHue.Blue:
+                    switch (lightness)
+                    {
+                        case ColorLightness.Light:
+                            return LightBlue;
+                        case ColorLightness.Normal:
+                            return Blue;
+                        case ColorLightness.Dark:
+                            return DarkBlue;
+                    }
+                    break;
+                case ColorHue.Magenta:
+                    switch (lightness)
+                    {
+                        case ColorLightness.Light:
+                            return LightMagenta;
+                        case ColorLightness.Normal:
+                            return Magenta;
+                        case ColorLightness.Dark:
+                            return DarkMagenta;
+                    }
+                    break;
+            }
+            throw new ArgumentException("No color for given hue/lightness");
         }
     }
 
