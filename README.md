@@ -15,4 +15,7 @@ The implementation of the interpreter follows the original specifications for Pi
 ## Download
 The most recent installer can be found [here](https://github.com/Olfi01/PietPad/releases).
 
+## Screenshot
+![Screenshot of PietPad UI](PietPad.png)
+
 ### In conclusion: have fun!
