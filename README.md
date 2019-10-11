@@ -12,5 +12,7 @@ When I encountered Piet, I looked around the web a bit but found no particular I
 ## Piet
 The implementation of the interpreter follows the original specifications for Piet (can be found [here](http://www.dangermouse.net/esoteric/piet.html)).
 
+## Download
+The most recent installation file can be found [here](https://github.com/Olfi01/PietPad/releases).
 
 ### In conclusion: have fun!
