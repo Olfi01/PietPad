@@ -16,6 +16,7 @@
     <Window.CommandBindings>
         <CommandBinding Command="Save" Executed="CommandBindingSave_Executed"/>
         <CommandBinding Command="SaveAs" Executed="CommandBindingSaveAs_Executed"/>
+        <CommandBinding Command="Open" Executed="CommandBindingOpen_Executed"/>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Command="SaveAs" Key="S" Modifiers="Ctrl+Shift"/>

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace PietPad.Classes
 {
+    [Serializable]
     public class Codel
     {
         public static readonly CodelColor DefaultColor = CodelColor.White;

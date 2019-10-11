@@ -7,16 +7,18 @@ using System.Windows.Media;
 
 namespace PietPad.Classes
 {
+    [Serializable]
     public class CodelColor
     {
         public ColorHue? Hue { get; }
         public ColorLightness? Lightness { get; }
-        public Brush Brush { get; }
+        public string Colorcode { get; }
+        public Brush Brush { get => (SolidColorBrush)new BrushConverter().ConvertFrom(Colorcode); }
         protected CodelColor(ColorHue? hue, ColorLightness? lightness, string colorcode)
         {
             Hue = hue;
             Lightness = lightness;
-            Brush = (SolidColorBrush)new BrushConverter().ConvertFrom(colorcode);
+            Colorcode = colorcode;
         }
 
         public static readonly CodelColor LightRed = new CodelColor(ColorHue.Red, ColorLightness.Light, "#FFC0C0");

@@ -461,5 +461,42 @@ namespace PietPad
                 bf.Serialize(stream, image);
             }
         }
+
+        private void CommandBindingOpen_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var ofd = new OpenFileDialog()
+            {
+                Title = "Open file",
+                DefaultExt = "*.piet",
+                Filter = "PietPad Files (*.piet)|*.piet|All Files (*.*)|*.*",
+                ValidateNames = true,
+                CheckFileExists = true,
+                Multiselect = false
+            };
+            ofd.ShowDialog();
+            if (!string.IsNullOrEmpty(ofd.FileName))
+            {
+                LoadFile(ofd.FileName);
+            }
+        }
+
+        private void LoadFile(string filePath)
+        {
+            try
+            {
+                BinaryFormatter bf = new BinaryFormatter();
+                using (var stream = File.OpenRead(filePath))
+                {
+                    image = (Codel[,])bf.Deserialize(stream);
+                }
+            }
+            catch
+            {
+                MessageBox.Show("Failed to open file.");
+                return;
+            }
+            ResizeGrid(image.GetLength(0), image.GetLength(1));
+            currentFilePath = filePath;
+        }
     }
 }
