@@ -17,6 +17,8 @@
         <CommandBinding Command="Save" Executed="CommandBindingSave_Executed"/>
         <CommandBinding Command="SaveAs" Executed="CommandBindingSaveAs_Executed"/>
         <CommandBinding Command="Open" Executed="CommandBindingOpen_Executed"/>
+        <CommandBinding Command="local:CustomCommands.Import" Executed="CommandBindingImport_Executed"/>
+        <CommandBinding Command="local:CustomCommands.Export" Executed="CommandBindingExport_Executed"/>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Command="SaveAs" Key="S" Modifiers="Ctrl+Shift"/>
@@ -36,8 +38,8 @@
                 <MenuItem Command="Save"/>
                 <MenuItem Command="SaveAs" InputGestureText="Ctrl+Shift+S"/>
                 <Separator/>
-                <MenuItem Header="Import"/>
-                <MenuItem Header="Export"/>
+                <MenuItem Command="local:CustomCommands.Import"/>
+                <MenuItem Command="local:CustomCommands.Export"/>
             </MenuItem>
             <MenuItem Header="About">
                 <MenuItem Header="Contribute" Click="MenuItemContribute_Click"/>

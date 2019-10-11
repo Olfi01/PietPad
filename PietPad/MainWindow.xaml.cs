@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -19,6 +20,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Path = System.IO.Path;
+using Rectangle = System.Windows.Shapes.Rectangle;
+using Brushes = System.Windows.Media.Brushes;
+using System.Drawing.Imaging;
 
 namespace PietPad
 {
@@ -43,7 +48,7 @@ namespace PietPad
         public MainWindow()
         {
             InitializeComponent();
-
+            
             // configure listeners for debug interpreter
             interpreter.Stack.CollectionChanged += (sender, e) =>
             {
@@ -445,8 +450,7 @@ namespace PietPad
                 Filter = "PietPad Files (*.piet)|*.piet|All Files (*.*)|*.*",
                 ValidateNames = true
             };
-            sfd.ShowDialog();
-            if (!string.IsNullOrEmpty(sfd.FileName))
+            if (sfd.ShowDialog() == true && !string.IsNullOrEmpty(sfd.FileName))
             {
                 currentFilePath = sfd.FileName;
                 SaveFile();
@@ -455,10 +459,17 @@ namespace PietPad
 
         private void SaveFile()
         {
-            BinaryFormatter bf = new BinaryFormatter();
-            using (var stream = File.OpenWrite(currentFilePath))
+            try
             {
-                bf.Serialize(stream, image);
+                BinaryFormatter bf = new BinaryFormatter();
+                using (var stream = File.OpenWrite(currentFilePath))
+                {
+                    bf.Serialize(stream, image);
+                }
+            }
+            catch
+            {
+                MessageBox.Show("Failed to save file.");
             }
         }
 
@@ -473,8 +484,7 @@ namespace PietPad
                 CheckFileExists = true,
                 Multiselect = false
             };
-            ofd.ShowDialog();
-            if (!string.IsNullOrEmpty(ofd.FileName))
+            if (ofd.ShowDialog() == true && !string.IsNullOrEmpty(ofd.FileName))
             {
                 LoadFile(ofd.FileName);
             }
@@ -497,6 +507,67 @@ namespace PietPad
             }
             ResizeGrid(image.GetLength(0), image.GetLength(1));
             currentFilePath = filePath;
+        }
+
+        private void CommandBindingImport_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var ifd = new ImportExportDialog(false, Path.GetDirectoryName(currentFilePath));
+            if (ifd.ShowDialog() == true && ifd.Successful && File.Exists(ifd.FilePathResult))
+            {
+                var ppc = ifd.PixelsPerCodel;
+                try
+                {
+                    using (Stream stream = File.OpenRead(ifd.FilePathResult))
+                    {
+                        using (Bitmap bmp = new Bitmap(stream))
+                        {
+                            image = new Codel[bmp.Width / ppc, bmp.Height / ppc];
+                            for (int x = 0; x < image.GetLength(0); x++)
+                            {
+                                for (int y = 0; y < image.GetLength(1); y++)
+                                {
+                                    image[x, y] = new Codel(x, y) { Color = bmp.GetPixel(x * ppc, y * ppc).GetCodelColor() };
+                                }
+                            }
+                        }
+                    }
+                    ResizeGrid(image.GetLength(0), image.GetLength(1));
+                }
+                catch
+                {
+                    MessageBox.Show("Failed to import picture.");
+                }
+            }
+        }
+
+        private void CommandBindingExport_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var efd = new ImportExportDialog(true, Path.GetDirectoryName(currentFilePath));
+            if (efd.ShowDialog() == true && efd.Successful)
+            {
+                var ppc = efd.PixelsPerCodel;
+                try
+                {
+                    using (Bitmap bmp = new Bitmap(image.GetLength(0) * ppc, image.GetLength(1) * ppc))
+                    {
+                        using (Graphics g = Graphics.FromImage(bmp))
+                        {
+                            for (int x = 0; x < image.GetLength(0); x++)
+                            {
+                                for (int y = 0; y < image.GetLength(1); y++)
+                                {
+                                    g.FillRectangle(new SolidBrush(ColorTranslator.FromHtml(image[x, y].Color.Colorcode)), x * ppc, y * ppc, ppc, ppc);
+                                }
+                            }
+                        }
+                        bmp.Save(efd.FilePathResult, ImageFormat.Png);
+                    }
+                }
+                catch
+                {
+                    MessageBox.Show("Failed to export file.");
+                }
+            }
         }
     }
 }
