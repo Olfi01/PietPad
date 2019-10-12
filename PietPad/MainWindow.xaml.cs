@@ -239,10 +239,16 @@ namespace PietPad
                     if (col < oldImage.GetLength(0) && row < oldImage.GetLength(1))
                     {
                         image[col, row] = oldImage[col, row];
-                        imageRects[col, row] = oldImageRects[col, row];
                     }
                     else image[col, row] = new Codel(col, row);
-                    imageRects[col, row] = GetNewRectangle(col, row);
+                    if (col < oldImageRects.GetLength(0) && row < oldImageRects.GetLength(1) && oldImageRects[col, row] != null)
+                    {
+                        imageRects[col, row] = oldImageRects[col, row];
+                    }
+                    else
+                    {
+                        imageRects[col, row] = GetNewRectangle(col, row);
+                    }
                 }
             }
             ReloadGrid();
@@ -521,14 +527,15 @@ namespace PietPad
                     {
                         using (Bitmap bmp = new Bitmap(stream))
                         {
-                            image = new Codel[bmp.Width / ppc, bmp.Height / ppc];
-                            for (int x = 0; x < image.GetLength(0); x++)
+                            var newImage = new Codel[bmp.Width / ppc, bmp.Height / ppc];
+                            for (int x = 0; x < newImage.GetLength(0); x++)
                             {
-                                for (int y = 0; y < image.GetLength(1); y++)
+                                for (int y = 0; y < newImage.GetLength(1); y++)
                                 {
-                                    image[x, y] = new Codel(x, y) { Color = bmp.GetPixel(x * ppc, y * ppc).GetCodelColor() };
+                                    newImage[x, y] = new Codel(x, y) { Color = bmp.GetPixel(x * ppc, y * ppc).GetCodelColor() };
                                 }
                             }
+                            image = newImage;
                         }
                     }
                     ResizeGrid(image.GetLength(0), image.GetLength(1));
