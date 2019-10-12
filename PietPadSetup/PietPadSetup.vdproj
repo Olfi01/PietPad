@@ -15,38 +15,38 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_011BE86A5A174EC289FCC161F8917DB6"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_091A540CCC0F849214373D9A02415B5A"
-        "OwnerKey" = "8:_011BE86A5A174EC289FCC161F8917DB6"
+        "OwnerKey" = "8:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_2B9BB4F923C2578AE1B6198B7F4795B7"
-        "OwnerKey" = "8:_011BE86A5A174EC289FCC161F8917DB6"
+        "OwnerKey" = "8:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_612BC06CD73843373B51C6F070ACCD39"
-        "OwnerKey" = "8:_011BE86A5A174EC289FCC161F8917DB6"
+        "OwnerKey" = "8:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_73B701B114E6FE83FF205EB02725119C"
-        "OwnerKey" = "8:_011BE86A5A174EC289FCC161F8917DB6"
+        "OwnerKey" = "8:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_E88014437F7A90AA25321059185E56DA"
-        "OwnerKey" = "8:_011BE86A5A174EC289FCC161F8917DB6"
+        "OwnerKey" = "8:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -70,13 +70,19 @@
         "Entry"
         {
         "MsmKey" = "8:_F750EC9BBE713DA72C06FA83B0A7D2C7"
-        "OwnerKey" = "8:_011BE86A5A174EC289FCC161F8917DB6"
+        "OwnerKey" = "8:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_011BE86A5A174EC289FCC161F8917DB6"
+        "OwnerKey" = "8:_091A540CCC0F849214373D9A02415B5A"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -107,12 +113,6 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_E88014437F7A90AA25321059185E56DA"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_091A540CCC0F849214373D9A02415B5A"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -453,7 +453,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:PietPad"
         "ProductCode" = "8:{9B1C6CAB-AE47-41C9-A784-99631C41B8E1}"
-        "PackageCode" = "8:{D552CAA2-ABDC-4BE3-B9AF-4193EE3984A8}"
+        "PackageCode" = "8:{9100D324-6367-4FC2-8143-F5903033220C}"
         "UpgradeCode" = "8:{C18DDD8F-BCB6-4E5C-81DC-761899E054C4}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -573,7 +573,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_0541D59119EF42AC9443586FD4CD1D53"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_1CAFA29A675B40DA8B00304DD7D4E31A"
             {
             "Name" = "8:PietPad"
             "Arguments" = "8:"
@@ -581,13 +581,13 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:32512"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_011BE86A5A174EC289FCC161F8917DB6"
+            "Target" = "8:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
             "Folder" = "8:_BC146C756A7C42EDB6F5A309F14993C7"
             "WorkingFolder" = "8:_FBFCC26382C341F8B6B69D51D17F01B5"
-            "Icon" = "8:_011BE86A5A174EC289FCC161F8917DB6"
+            "Icon" = "8:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
             "Feature" = "8:"
             }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_C56B6D9A58E74BB5A6672AED24A6FA26"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_C822D9E72BEB406E979388514EDFF232"
             {
             "Name" = "8:PietPad"
             "Arguments" = "8:"
@@ -595,10 +595,10 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:32512"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_011BE86A5A174EC289FCC161F8917DB6"
+            "Target" = "8:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
             "Folder" = "8:_E1AF84FE431C494A9CBAEFC7A58E01B2"
             "WorkingFolder" = "8:_FBFCC26382C341F8B6B69D51D17F01B5"
-            "Icon" = "8:_011BE86A5A174EC289FCC161F8917DB6"
+            "Icon" = "8:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
             "Feature" = "8:"
             }
         }
@@ -1000,9 +1000,9 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_011BE86A5A174EC289FCC161F8917DB6"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_3C7C7BCD15C04C1285C1871B4D0BDE2C"
             {
-            "SourcePath" = "8:..\\PietPad\\obj\\Release\\PietPad.exe"
+            "SourcePath" = "8:..\\PietPad\\obj\\Debug\\PietPad.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_FBFCC26382C341F8B6B69D51D17F01B5"
