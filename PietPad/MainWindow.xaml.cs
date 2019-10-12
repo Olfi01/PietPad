@@ -228,6 +228,8 @@ namespace PietPad
         {
             pietGrid.Width = newCols * codelSize;
             pietGrid.Height = newRows * codelSize;
+            colCounter.Value = newCols;
+            rowCounter.Value = newRows;
             var oldImage = image;
             var oldImageRects = imageRects;
             image = new Codel[newCols, newRows];
